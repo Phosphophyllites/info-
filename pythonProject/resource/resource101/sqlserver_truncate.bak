@@ -1,0 +1,313 @@
+case 001 "数据：字符类型truncate" 0
+before:
+drop table dbo.i2_chartr;
+go
+src_sql:
+create table dbo.i2_chartr (
+    no           int IDENTITY(1,1),
+    c_char       char(5) not null,
+    c_nchar      nchar(10) ,
+    c_varchar    varchar(20) not null,
+    c_nvarchar   nvarchar(20),
+	constraint pk_notr primary key(no)
+);
+insert into dbo.i2_chartr values ('A','56789','AA101','测试ABC');
+insert into dbo.i2_chartr values ('B','45678','AA102','用例DEF');
+insert into dbo.i2_chartr(c_char,c_varchar) values ('D','AB104');
+truncate table dbo.i2_chartr;
+go
+tgt_sql: (1)
+select count(*) from dbo.i2_chartr;
+go
+
+case 002 "数据：数字类型truncate" 0
+before:
+drop table dbo.i2_notr;
+go
+src_sql:
+create table dbo.i2_notr (
+    no             int primary key,
+    c_int          int default 0 not null,
+	c_tinyint	   tinyint,
+	c_smallint	   smallint not null,
+	c_bigint	   bigint not null,
+	c_decimal	   decimal(5,2),
+	c_numeric	   numeric(10,4),
+    c_float        float,
+    c_real         real,
+    c_money        money,
+    c_smallmoney   smallmoney,
+	c_bit		   bit
+);
+insert into dbo.i2_notr values (1,100,35,10000,50001,123.45,876543.2398,300.45,500.6789,100.23,300.45,1);
+insert into dbo.i2_notr values (2,200,45,20000,50002,345.54,876543.2398,300.45,500.6789,100.23,300.45,0);
+insert into dbo.i2_notr values ( 3,300,55,30000,50003,654.54,876543.2398,300.45,500.6789,100.23,300.45,1);
+truncate table dbo.i2_notr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_notr;
+go
+
+case 003 "数据：日期类型truncate" 0
+before:
+drop table dbo.i2_timetr;
+go
+src_sql:
+create table dbo.i2_timetr (
+    no                   int primary key,
+    c_date               date not null,
+	c_time				 time,
+	c_datetime			 datetime,
+	c_datetime2			 datetime2,
+    c_timestamp          timestamp,
+	c_smalldatetime		 smalldatetime,
+	c_datetimeoffset	 datetimeoffset
+);
+insert into dbo.i2_timetr values
+(1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+default,
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET())
+);
+insert into dbo.i2_timetr values
+(2,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1998-12-12 14:31:56.333',20),
+convert(datetime2,'2047-06-01 20:51:24.99999',21),
+default,
+convert(smalldatetime,'2001-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET())
+);
+insert into dbo.i2_timetr values (3,'2022-01-01','11:34:45.555','1997-10-11 14:31:56.333','2046-06-01 20:51:24.99999',default,'2002-12-05 12:00:10','1997-12-01 23:59:59.9999999');
+truncate table dbo.i2_timetr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_timetr;
+go
+
+case 004 "数据：二进制类型truncate " 0
+before:
+drop table dbo.i2_binarytr;
+go
+src_sql:
+create table dbo.i2_binarytr (
+    no                  int primary key,
+    c_binary            binary(30),
+    c_varbinary         varbinary(1000)
+);
+insert into dbo.i2_binarytr values (1,0x1f,0x111111111);
+insert into dbo.i2_binarytr values (2,0x2f,0x222222222);
+insert into dbo.i2_binarytr values (3,0x3f,0x333333333);
+truncate table dbo.i2_binarytr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_binarytr;
+go
+
+case 005 "数据：空间类型truncate " 0
+before:
+drop table dbo.i2_geometr;
+go
+src_sql:
+CREATE TABLE dbo.i2_geometr (
+    no                  int primary key,
+    c_geometry          geometry,
+    c_geography         geography
+);
+insert into dbo.i2_geometr values (1,geometry::STGeomFromText('LINESTRING (100 100, 20 180, 180 180)',0),geography :: STGeomFromText('POINT(55.9271035250276 -3.29431266523898)',4326));
+insert into dbo.i2_geometr values (2,geometry::STGeomFromText('POLYGON ((0 0, 150 0, 150 150, 0 150, 0 0))',0),geography :: STGeomFromText('POINT(55.9271035250276 -3.29431266523898)',4326));
+insert into dbo.i2_geometr values (3,geometry :: STGeomFromText('POLYGON((-122.358 47.653, -122.348 47.649, -122.348 47.658, -122.358 47.658, -122.358 47.653))',4326),geography :: STGeomFromText('POINT(55.9271035250276 -3.29431266523898)',4326));
+truncate table dbo.i2_geometr;
+go
+tgt_sql: (1)
+select count(*) from dbo.i2_geometr;
+go
+
+case 006 "数据：xml类型truncate " 0
+before:
+drop table dbo.i2_xmltr;
+go
+src_sql:
+CREATE TABLE dbo.i2_xmltr (no int primary key, c_xml xml);
+go
+INSERT INTO dbo.i2_xmltr VALUES(1,'<Root>
+<ProductDescription ProductID="1" ProductName="Road Bike">
+<Features>
+<Warranty>1 year parts and labor</Warranty>
+<Maintenance>3 year parts and labor extended maintenance is available</Maintenance>
+</Features>
+</ProductDescription>
+</Root>');
+INSERT INTO dbo.i2_xmltr VALUES(2,'<Root>
+<ProductDescription ProductID="1" ProductName="yingfang active">
+<Features>
+<Warranty>1 year parts and labor</Warranty>
+<Maintenance>3 year parts and labor extended maintenance is available</Maintenance>
+</Features>
+</ProductDescription>
+</Root>');
+INSERT INTO dbo.i2_xmltr VALUES(3,'<Root>
+<ProductDescription ProductID="1" ProductName="yf stream">
+<Features>
+<Warranty>1 year parts and labor</Warranty>
+<Maintenance>3 year parts and labor extended maintenance is available</Maintenance>
+</Features>
+</ProductDescription>
+</Root>');
+truncate table dbo.i2_xmltr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_xmltr;
+go
+
+case 007 "数据：uniqueidentifier类型truncate " 0
+before:
+drop table dbo.i2_uniquetr;
+go
+src_sql:
+CREATE TABLE dbo.i2_uniquetr
+(no int primary key,
+c_unique UNIQUEIDENTIFIER DEFAULT newID(),
+c_varchar VARCHAR(20) );
+INSERT INTO dbo.i2_uniquetr VALUES (1,newID(), 'def');
+INSERT INTO dbo.i2_uniquetr VALUES (2,newID(), 'ying');
+INSERT INTO dbo.i2_uniquetr VALUES (3,newID(), 'fang');
+truncate table dbo.i2_uniquetr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_uniquetr;
+go
+
+case 008 "数据：sql_variant类型truncate " 0
+before:
+drop table dbo.i2_varianttr;
+go
+src_sql:
+create table dbo.i2_varianttr (
+	no int primary key,
+	c_unique     sql_variant DEFAULT newID(),
+    c_char20     sql_variant ,
+    c_varchar    sql_variant not null,
+	c_nchar50    sql_variant,
+    c_nvarchar   sql_variant,
+    c_int        sql_variant,
+	c_smallint   sql_variant,
+	c_tinyint    sql_variant ,
+	c_bigint     sql_variant,
+	c_decimal    sql_variant,
+	c_numeric	 sql_variant,
+	c_float      sql_variant,
+	c_real       sql_variant,
+	c_money      sql_variant,
+	c_smallmoney sql_variant,
+	c_bit        sql_variant,
+	c_date       sql_variant,
+	c_time       sql_variant,
+	c_datetime	 sql_variant,
+	c_datetime2  sql_variant,
+	c_smalldatetime  sql_variant,
+	c_datetimeoffset sql_variant,
+	c_binary     sql_variant,
+	c_varbinary  sql_variant,
+	c_hierarchyid  sql_variant
+	);
+insert into dbo.i2_varianttr values (1,newid(),'fang56789','AA101','GHjjjjjjjjj','上海英方股份有限公司测试用例1',10,9999,81,67891,2020.88888888,500.6789,300.45,500.6789,100.23,300.45,1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET()),
+0x1f,0x111111111,'/1/2/3/');
+insert into dbo.i2_varianttr values (2,newid(),'yuan56789','AA102','GHjjjjjjjjj','上海英方股份有限公司测试用例2',10,9999,91,67891,2020.88888888,500.6789,300.45,500.6789,100.23,300.45,1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET()),
+0x2f,0x111111111,'/1/2/3/');
+insert into dbo.i2_varianttr values (3,newid(),'chang56789','AA103','GHjjjjjjjjj','上海英方股份有限公司测试用例4',10,9999,101,67891,2020.88888888,500.6789,300.45,500.6789,100.23,300.45,1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET()),
+0x3f,0x111111111,'/1/2/3/');
+truncate table dbo.i2_varianttr;
+go
+
+tgt_sql: (1)
+select count(*) from dbo.i2_varianttr;
+go
+
+case 009 "数据：文本类型truncate " 0
+before:
+drop table dbo.i2_texttr;
+go
+src_sql:
+create table dbo.i2_texttr (
+    no           int primary key,
+	c_text		 text,
+	c_ntext		 ntext,
+	c_image      image
+);
+insert into dbo.i2_texttr values (1,'012345679809909089','这是一个测试用例INFO',0x18F6D0D51D96A9664FC1491174A9DAFD67C8B0D2571EB1ABF7EDEC2CCB508EEAA4D7163B4);
+insert into dbo.i2_texttr values (2,'lkjdkgljasjhjjklgs','这是一个测试用例INFO',0x28F6D0D51D96A9664FC1491174A9DAFD67C8B0D2571EB1ABF7EDEC2CCB508EEAA4D7163B4);
+insert into dbo.i2_texttr values (3,'kljlkjlkjkloiuiyio','这是一个测试用例INFO',0x38F6D0D51D96A9664FC1491174A9DAFD67C8B0D2571EB1ABF7EDEC2CCB508EEAA4D7163B4);
+truncate table dbo.i2_texttr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_texttr;
+go
+
+case 010 "数据：CLR数据类型truncate " 0
+before:
+drop table dbo.i2_clrtr;
+go
+src_sql:
+CREATE TABLE dbo.i2_clrtr
+(
+    no                  int primary key,
+	c_hierarchyid       hierarchyid,
+	c_h1                hierarchyid,
+	v1 				    hierarchyid
+);
+insert into dbo.i2_clrtr values (1,'/1/2/1/','/1/2/2/','/1/2/3/');
+insert into dbo.i2_clrtr values (2,'/1/2/4/','/1/2/5/','/1/2/6/');
+insert into dbo.i2_clrtr values (3,'/1/2/5/','/1/1/1/','/1/1/2/');
+truncate table dbo.i2_clrtr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_clrtr;
+go
+
+case 011 "数据：sysname类型truncate " 0
+before:
+drop table dbo.i2_sysnametr;
+go
+src_sql:
+
+create table dbo.i2_sysnametr (no int primary key,c_s1 sysname,c_n1 nvarchar(128) not null);
+insert into dbo.i2_sysnametr values (1,N'test sysname定义ABC','数据的同时级联插入');
+insert into dbo.i2_sysnametr values (2,N'test sysname定义ABCD','数据的同时级联插入');
+insert into dbo.i2_sysnametr values (3,N'test sysname定义A','数据的同时级联插入');
+truncate table dbo.i2_sysnametr;
+go
+
+tgt_sql:
+select count(*) from dbo.i2_sysnametr;
+go

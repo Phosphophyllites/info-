@@ -1,0 +1,179 @@
+case 111 "创建DDL数据库级触发器" 0
+before:
+drop trigger trig_ddl on database;--删除名为 trigger_DDL_Table 的数据库级别的触发器
+drop table trig_t3;
+go
+src_sql:
+create trigger trig_ddl  -- 创建触发器
+on database
+for drop_table,alter_table        -- 指定触发器事件
+as
+    print '触发器 trig_ddl 已禁止对表进行DDL的 drop、alter 操作'
+    rollback    --对操作进行回滚
+go
+create table dbo.trig_t3 (
+    no           int primary key ,
+    c_char       char(5) not null,
+    c_nchar      nchar(10) default 'def',
+    c_varchar    varchar(20) not null,
+    c_nvarchar   nvarchar(20)
+);
+insert into dbo.trig_t3 values (1,'A€','56789','AB101','测试ABC');
+insert into dbo.trig_t3  values (2,'B€','45678','AB102','用例DEF');
+drop table trig_t3 ;
+update trig_t3  set c_char='X' where no=2;
+go
+tgt_sql:
+select * from trig_t3;
+select * from sysobjects where xtype='TR' AND parent_obj = OBJECT_ID('trig_t3');
+go
+
+case 112 "创建insert触发器" 0
+before:
+drop trigger trig_insert1;
+drop table trig_t1;
+drop table trig_t1_sum1;
+go
+src_sql:
+create table trig_t1(
+    stu_id int identity(1,1) primary key,
+    stu_name varchar(10),
+    stu_gender char(2),
+    stu_age int
+);
+create trigger trig_insert1
+on trig_t1
+after insert
+as
+begin
+    if object_id(N'trig_t1_sum1',N'U') is null--判断student_sum表是否存在
+        create table trig_t1_sum1(stuCount int default(0))--创建存储学生人数的student_sum表
+    declare @stuNumber int;
+    select @stuNumber = count(*) from trig_t1
+    if not exists (select * from trig_t1_sum1)--判断表中是否有记录
+        insert into trig_t1_sum1 values(0)
+    update trig_t1_sum1 set stuCount =@stuNumber --把更新后总的学生数插入到student_sum表中
+end
+go
+
+--测试触发器trig_insert-->功能是向student插入数据的同时级联插入到student_sum表中，更新stuCount
+--因为是后触发器，所以先插入数据后，才触发触发器trig_insert;
+insert into trig_t1(stu_name,stu_gender,stu_age)values('吕布','男',30);
+select stuCount 学生总人数 from trig_t1_sum1;
+insert into trig_t1(stu_name,stu_gender,stu_age)values('貂蝉','女',30);
+select stuCount 学生总人数 from trig_t1_sum1;
+insert into trig_t1(stu_name,stu_gender,stu_age)values('曹阿瞒','男',40);
+select stuCount 学生总人数 from trig_t1_sum1;
+go
+
+tgt_sql:
+select * from trig_t1;
+select * from trig_t1_sum1;
+SELECT name FROM SYSOBJECTS WHERE XTYPE='TR' AND parent_obj = OBJECT_ID('trig_t1')
+go
+
+case 113 "创建insert_forbidden" 0
+before:
+drop trigger trig_insert_forbidden;
+go
+src_sql:
+create trigger trig_insert_forbidden
+on trig_t1_sum1
+after insert
+as
+begin
+    RAISERROR('禁止直接向该表中插入记录，操作被禁止',1,1)--raiserror 是用于抛出一个错误
+rollback transaction
+end
+go
+--触发insert_forbidden
+insert into trig_t1_sum1 (stuCount) values (5);
+go
+tgt_sql:
+select * from trig_t1_sum1;
+SELECT name FROM SYSOBJECTS WHERE XTYPE='TR' AND parent_obj = OBJECT_ID('trig_t1_sum1')
+go
+
+case 114 "创建delete触发器" 0
+before:
+drop trigger trig_delete;
+go
+src_sql:
+create trigger trig_delete
+on trig_t1
+after delete
+as
+begin
+    select stu_id as 已删除的学生编号,stu_name,stu_gender,stu_age
+    from deleted
+end
+go
+delete from trig_t1 where stu_id=1;
+go
+tgt_sql:
+select * from trig_t1;
+SELECT name FROM SYSOBJECTS WHERE XTYPE='TR' AND parent_obj = OBJECT_ID('trig_t1')
+go
+
+case 115 "创建update触发器" 0
+before:
+drop trigger trig_update;
+go
+src_sql:
+create trigger trig_update
+on trig_t1
+after update
+as
+begin
+    declare @stuCount int
+    select @stuCount=count(*) from trig_t1
+    update trig_t1_sum1 set stuCount =@stuCount
+    select stu_id as 更新前学生编号,stu_name as 更新前学生姓名 from deleted
+    select stu_id as 更新后学生编号,stu_name as 更新后学生姓名 from inserted
+end
+go
+update trig_t1 set stu_name='张飞' where stu_id=2;
+go
+tgt_sql:
+select * from trig_t1;
+select * from trig_t1_sum1;
+SELECT name FROM SYSOBJECTS WHERE XTYPE='TR' AND parent_obj = OBJECT_ID('trig_t1');
+go
+
+case 116 "创建instead of 触发器" 0
+before:
+drop trigger trig_insteadOf;
+drop table trig_t2;
+go
+src_sql:
+create table trig_t2(
+    stu_id int primary key,
+    stu_name varchar(10),
+    stu_gender char(2),
+    stu_age int
+);
+create trigger trig_insteadOf
+on trig_t2
+instead of insert
+as
+begin
+	Declare @stuid int,@stuname varchar(10),@stugender char(2),@stuage int
+    select @stuid=stu_id,@stuname=stu_name,@stugender=stu_gender,@stuage=stu_age from inserted
+if(@stuage >70)
+	begin
+    select '插入年龄错误' as '失败原因'
+	end
+else
+	begin
+	insert into trig_t2 values(@stuid,@stuname,@stugender,@stuage)
+	PRINT '插入成功'
+	end
+end
+go
+insert into trig_t2 values(1,'龙一','男',121);
+insert into trig_t2 values(2,'龙二','男',11);
+go
+
+tgt_sql:
+SELECT name FROM SYSOBJECTS WHERE XTYPE='TR' AND parent_obj = OBJECT_ID('trig_t2');
+go

@@ -1,0 +1,52 @@
+在 Python 中，可以使用 `configparser` 模块来解析配置文件，然后使用 `config.get()` 方法获取配置文件中的参数值。
+
+假设你有一个名为 `config.ini` 的配置文件，内容如下：
+
+```ini
+[MySection]
+param1 = value1
+param2 = value2
+```
+
+在你的 Python 代码中，你可以这样使用 `configparser` 模块来读取配置文件并获取参数值：
+
+```python
+import configparser
+
+def read_config(param1_value, param2_value):
+    # 读取配置文件
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    # 获取参数值
+    param1 = config.get('MySection', 'param1', fallback=param1_value)
+    param2 = config.get('MySection', 'param2', fallback=param2_value)
+
+    return param1, param2
+
+# 在函数中传递参数
+param1_value = 'default_value1'
+param2_value = 'default_value2'
+param1, param2 = read_config(param1_value, param2_value)
+
+print(f"param1: {param1}")
+print(f"param2: {param2}")
+```
+
+在上述代码中，我们定义了一个 `read_config()` 函数来读取配置文件，并在函数的参数中传递了两个默认值 `param1_value` 和 `param2_value`。如果配置文件中存在对应的参数，则会使用配置文件中的值，否则会使用默认值。这样，你可以在函数中向配置文件传递参数来填补位置。如果配置文件中没有对应的参数，`config.get()` 方法将返回传入的默认值。
+
+注意：如果在配置文件中找不到对应的参数且没有传入默认值，`config.get()` 方法会抛出 `NoOptionError` 异常。为了避免这种情况，我们在示例中使用 `fallback` 参数来提供默认值。
+
+确保你的配置文件名为 `config.ini` 并与你的 Python 脚本在同一个目录下。然后运行这段代码，你将会得到输出：
+
+```
+param1: value1
+param2: value2
+```
+
+如果配置文件中没有相应的参数，那么将会使用默认值：
+
+```
+param1: default_value1
+param2: default_value2
+```

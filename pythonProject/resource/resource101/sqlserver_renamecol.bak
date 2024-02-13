@@ -1,0 +1,405 @@
+case 001 "数据：字符类型插入数据" 0
+before:
+drop table dbo.i2_charrecol;
+go
+src_sql:
+create table dbo.i2_charrecol (
+    no           int IDENTITY(1,1),
+    c_char       char(5) not null,
+    c_nchar      nchar(10) ,
+    c_varchar    varchar(20) not null,
+    c_nvarchar   nvarchar(20),
+	constraint pk_norecol primary key(no)
+);
+insert into dbo.i2_charrecol values ('A','56789','AA101','测试ABC');
+insert into dbo.i2_charrecol values ('B','45678','AA102','用例DEF');
+exec sp_rename 'dbo.i2_charrecol.c_char','c_char_新列','COLUMN';
+exec sp_rename 'dbo.i2_charrecol.c_varchar','c_varchar_新列','COLUMN';
+exec sp_rename 'dbo.i2_charrecol.c_nchar','c_nchar_新列','COLUMN';
+exec sp_rename 'dbo.i2_charrecol.c_nvarchar','c_nvarchar_新列','COLUMN';
+insert into dbo.i2_charrecol values ('C', '45678','AB103','JK');
+insert into dbo.i2_charrecol(c_char_新列,c_varchar_新列) values ('D','AB104');
+update dbo.i2_charrecol set c_char_新列='X',c_varchar_新列= '中国指针' where no=3;
+update dbo.i2_charrecol set c_varchar_新列= '公司278' where no=2;
+update dbo.i2_charrecol set c_varchar_新列= 'AG578' where no=4;
+delete from i2_charrecol where no=1;
+go
+tgt_sql: (1)
+select * from dbo.i2_charrecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_charrecol');
+go
+
+case 002 "数据：数字类型重命名列" 0
+before:
+drop table dbo.i2_norecol;
+go
+src_sql:
+create table dbo.i2_norecol (
+    no             int primary key,
+    c_int          int default 0 not null,
+	c_tinyint	   tinyint,
+	c_smallint	   smallint not null,
+	c_bigint	   bigint not null,
+	c_decimal	   decimal(5,2),
+	c_numeric	   numeric(10,4),
+    c_float        float,
+    c_real         real,
+    c_money        money,
+    c_smallmoney   smallmoney,
+	c_bit		   bit
+);
+insert into dbo.i2_norecol values (1,100,35,10000,50001,123.45,876543.2398,300.45,500.6789,100.23,300.45,1);
+insert into dbo.i2_norecol values (2,200,45,20000,50002,345.54,876543.2398,300.45,500.6789,100.23,300.45,0);
+exec sp_rename 'dbo.i2_norecol.c_int','c_int_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_tinyint','c_tinyint_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_smallint','c_smallint_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_bigint','c_bigint_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_decimal','c_decimal_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_numeric','c_numericric_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_float','c_float_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_real','c_real_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_money','c_money_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_smallmoney','c_smallmoney_新列','COLUMN';
+exec sp_rename 'dbo.i2_norecol.c_bit','c_bit_新列','COLUMN';
+insert into dbo.i2_norecol values ( 3,300,55,30000,50003,654.54,876543.2398,300.45,500.6789,100.23,300.45,1);
+insert into dbo.i2_norecol(no,c_int_新列,c_smallint_新列,c_bigint_新列) values (4,400,10004,50004);
+update dbo.i2_norecol set c_int_新列=123,c_tinyint_新列=31,c_smallint_新列=79,c_decimal_新列=456.12,c_smallmoney_新列=13 where no=2;
+update dbo.i2_norecol set c_real_新列=111.89,c_float_新列=7766.452 where no=4;
+delete from i2_norecol where no=1;
+go
+
+tgt_sql:
+select * from dbo.i2_norecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_norecol');
+go
+
+case 003 "数据：日期类型重命名列" 0
+before:
+drop table dbo.i2_timerecol;
+go
+src_sql:
+create table dbo.i2_timerecol (
+    no                   int primary key,
+    c_date               date not null,
+	c_time				 time,
+	c_datetime			 datetime,
+	c_datetime2			 datetime2,
+    c_timestamp          timestamp,
+	c_smalldatetime		 smalldatetime,
+	c_datetimeoffset	 datetimeoffset
+);
+insert into dbo.i2_timerecol values
+(1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+default,
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET())
+);
+insert into dbo.i2_timerecol values
+(2,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1998-12-12 14:31:56.333',20),
+convert(datetime2,'2047-06-01 20:51:24.99999',21),
+default,
+convert(smalldatetime,'2001-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET())
+);
+exec sp_rename 'dbo.i2_timerecol.c_date','c_datenew','COLUMN';
+exec sp_rename 'dbo.i2_timerecol.c_time','c_timenew','COLUMN';
+exec sp_rename 'dbo.i2_timerecol.c_datetime','c_datetimenew','COLUMN';
+exec sp_rename 'dbo.i2_timerecol.c_datetime2','c_datetime2new','COLUMN';
+exec sp_rename 'dbo.i2_timerecol.c_timestamp','c_timestampnew','COLUMN';
+exec sp_rename 'dbo.i2_timerecol.c_smalldatetime','c_smalldatetimenew','COLUMN';
+exec sp_rename 'dbo.i2_timerecol.c_datetimeoffset','c_datetimeoffsetnew','COLUMN';
+insert into dbo.i2_timerecol values (3,'2022-01-01','11:34:45.555','1997-10-11 14:31:56.333','2046-06-01 20:51:24.99999',default,'2002-12-05 12:00:10','1997-12-01 23:59:59.9999999');
+insert into dbo.i2_timerecol(no,c_datenew,c_timenew) values (4,'2023-09-01','12:30:13.876');
+update dbo.i2_timerecol set c_datenew=CONVERT (date,'2025-05-05'),c_datetime2new='2022-06-01 11:11:14.88888',c_datetimenew='2027-08-18 19:11:33.666' where no=4;
+update dbo.i2_timerecol set c_datenew=CONVERT (date,'2023-05-15'),c_datetime2new='2021-05-01 12:11:14.88888',c_datetimenew='2029-09-10 19:11:33.666' where no=1;
+go
+
+tgt_sql:
+select no,c_datenew,c_timenew,c_datetimenew,c_datetime2new,c_smalldatetimenew,c_datetimeoffsetnew from dbo.i2_timerecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_timerecol');
+go
+
+case 004 "数据：二进制类型重命名列 " 0
+before:
+drop table dbo.i2_binaryrecol;
+go
+src_sql:
+create table dbo.i2_binaryrecol (
+    no                  int primary key,
+    c_binary            binary(30),
+    c_varbinary         varbinary(1000)
+);
+insert into dbo.i2_binaryrecol values (1,0x1f,0x111111111);
+insert into dbo.i2_binaryrecol values (2,0x2f,0x222222222);
+exec sp_rename 'dbo.i2_binaryrecol.c_binary','c_binary_新列','COLUMN';
+exec sp_rename 'dbo.i2_binaryrecol.c_varbinary','c_varbinary_新列','COLUMN';
+insert into dbo.i2_binaryrecol values (3,0x3f,0x333333333);
+insert into dbo.i2_binaryrecol(no,c_binary_新列) values(4,0x4f);
+update dbo.i2_binaryrecol set c_varbinary_新列=0x5e11111111111111 where no=1;
+update dbo.i2_binaryrecol set c_varbinary_新列=0x7a33333333333 where no=3;
+delete from dbo.i2_binaryrecol where no=2;
+go
+
+tgt_sql:
+select * from dbo.i2_binaryrecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_binaryrecol');
+go
+
+case 005 "数据：空间类型重命名列 " 0
+before:
+drop table dbo.i2_geomerecol;
+go
+src_sql:
+CREATE TABLE dbo.i2_geomerecol (
+    no                  int primary key,
+    c_geometry          geometry,
+    c_geography         geography
+);
+insert into dbo.i2_geomerecol values (1,geometry::STGeomFromText('LINESTRING (100 100, 20 180, 180 180)',0),geography :: STGeomFromText('POINT(55.9271035250276 -3.29431266523898)',4326));
+insert into dbo.i2_geomerecol values (2,geometry::STGeomFromText('POLYGON ((0 0, 150 0, 150 150, 0 150, 0 0))',0),geography :: STGeomFromText('POINT(55.9271035250276 -3.29431266523898)',4326));
+exec sp_rename 'dbo.i2_geomerecol.c_geometry','c_geometrynew';
+exec sp_rename 'dbo.i2_geomerecol.c_geography','c_geographynew';
+insert into dbo.i2_geomerecol values (3,geometry :: STGeomFromText('POLYGON((-122.358 47.653, -122.348 47.649, -122.348 47.658, -122.358 47.658, -122.358 47.653))',4326),geography :: STGeomFromText('POINT(55.9271035250276 -3.29431266523898)',4326));
+insert into dbo.i2_geomerecol(no,c_geometrynew) values(4,geometry::STGeomFromText('POINT (20 180)', 4326));
+update dbo.i2_geomerecol set c_geometrynew=geometry::STGeomFromText('LINESTRING (100 100, 20 180, 180 180)', 4326) where no=2;
+go
+tgt_sql: (1)
+select * from dbo.i2_geomerecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_geomerecol');
+go
+
+case 006 "数据：xml类型重命名列 " 0
+before:
+drop table dbo.i2_xmlrecol;
+go
+src_sql:
+CREATE TABLE dbo.i2_xmlrecol (no int primary key, c_xml xml);
+go
+INSERT INTO dbo.i2_xmlrecol VALUES(1,'<Root>
+<ProductDescription ProductID="1" ProductName="Road Bike">
+<Features>
+<Warranty>1 year parts and labor</Warranty>
+<Maintenance>3 year parts and labor extended maintenance is available</Maintenance>
+</Features>
+</ProductDescription>
+</Root>');
+INSERT INTO dbo.i2_xmlrecol VALUES(2,'<Root>
+<ProductDescription ProductID="1" ProductName="yingfang active">
+<Features>
+<Warranty>1 year parts and labor</Warranty>
+<Maintenance>3 year parts and labor extended maintenance is available</Maintenance>
+</Features>
+</ProductDescription>
+</Root>');
+exec sp_rename 'dbo.i2_xmlrecol.c_xml','c_xml_n';
+INSERT INTO dbo.i2_xmlrecol VALUES(3,'<Root>
+<ProductDescription ProductID="1" ProductName="yf stream">
+<Features>
+<Warranty>1 year parts and labor</Warranty>
+<Maintenance>3 year parts and labor extended maintenance is available</Maintenance>
+</Features>
+</ProductDescription>
+</Root>');
+insert into dbo.i2_xmlrecol(no,c_xml_n) values(4,'<Root>
+<ProductDescription ProductID="1" ProductName="yf coopy">
+<Features>
+<Warranty>1 year parts and labor</Warranty>
+<Maintenance>3 year parts and labor extended maintenance is available</Maintenance>
+</Features>
+</ProductDescription>
+</Root>');
+update dbo.i2_xmlrecol set c_xml_n='<Root>
+<Location LocationID="40"
+LaborHours="4.1"
+MachineHours=".2" >Manufacturing steps are described here.
+<step>Manufacturing step 1 at this work center</step>
+<step>Manufacturing step 2 at this work center</step>
+</Location>
+</Root>' where no=1;
+delete from i2_xmlrecol where no=2;
+go
+
+tgt_sql:
+select * from dbo.i2_xmlrecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_xmlrecol');
+go
+
+case 007 "数据：uniqueidentifier类型重命名列 " 0
+before:
+drop table dbo.i2_uniquerecol;
+go
+src_sql:
+CREATE TABLE dbo.i2_uniquerecol
+(no int primary key,
+c_unique UNIQUEIDENTIFIER DEFAULT newID(),
+c_varchar VARCHAR(20) );
+INSERT INTO dbo.i2_uniquerecol VALUES (1,newID(), 'def');
+INSERT INTO dbo.i2_uniquerecol VALUES (2,newID(), 'ying');
+exec sp_rename 'dbo.i2_uniquerecol.c_unique','c_unique_新列';
+INSERT INTO dbo.i2_uniquerecol VALUES (3,newID(), 'fang');
+INSERT INTO dbo.i2_uniquerecol(no,c_unique_新列) VALUES (4,newID());
+update dbo.i2_uniquerecol set c_unique_新列='6F9619FF-8B86-D011-B42D-00C04FC964BB' where no=1;
+delete from dbo.i2_uniquerecol where  no=3;
+go
+
+tgt_sql:
+select * from dbo.i2_uniquerecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_uniquerecol');
+go
+
+case 008 "数据：sql_variant类型重命名列 " 0
+before:
+drop table dbo.i2_variantrecol;
+go
+src_sql:
+create table dbo.i2_variantrecol (
+	no int primary key,
+	c_unique     sql_variant DEFAULT newID(),
+    c_char20     sql_variant ,
+    c_varchar    sql_variant not null,
+	c_nchar50    sql_variant,
+    c_nvarchar   sql_variant,
+    c_int        sql_variant,
+	c_smallint   sql_variant,
+	c_tinyint    sql_variant ,
+	c_bigint     sql_variant,
+	c_decimal    sql_variant,
+	c_numeric	 sql_variant,
+	c_float      sql_variant,
+	c_real       sql_variant,
+	c_money      sql_variant,
+	c_smallmoney sql_variant,
+	c_bit        sql_variant,
+	c_date       sql_variant,
+	c_time       sql_variant,
+	c_datetime	 sql_variant,
+	c_datetime2  sql_variant,
+	c_smalldatetime  sql_variant,
+	c_datetimeoffset sql_variant,
+	c_binary     sql_variant,
+	c_varbinary  sql_variant,
+	c_hierarchyid  sql_variant
+	);
+insert into dbo.i2_variantrecol values (1,newid(),'fang56789','AA101','GHjjjjjjjjj','上海英方股份有限公司测试用例1',10,9999,81,67891,2020.88888888,500.6789,300.45,500.6789,100.23,300.45,1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET()),
+0x1f,0x111111111,'/1/2/3/');
+insert into dbo.i2_variantrecol values (2,newid(),'yuan56789','AA102','GHjjjjjjjjj','上海英方股份有限公司测试用例2',10,9999,91,67891,2020.88888888,500.6789,300.45,500.6789,100.23,300.45,1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET()),
+0x2f,0x111111111,'/1/2/3/');
+exec sp_rename 'dbo.i2_variantrecol.c_bigint','c_bigintnew';
+exec sp_rename 'dbo.i2_variantrecol.c_smallint','c_smallintnew';
+exec sp_rename 'dbo.i2_variantrecol.c_int','c_intnew';
+exec sp_rename 'dbo.i2_variantrecol.c_nvarchar','c_nvarcharnew';
+exec sp_rename 'dbo.i2_variantrecol.c_nchar50','c_nchar50new';
+exec sp_rename 'dbo.i2_variantrecol.c_varchar','c_varcharnew';
+exec sp_rename 'dbo.i2_variantrecol.c_unique','c_uniquenew';
+exec sp_rename 'dbo.i2_variantrecol.c_char20','c_char20new';
+exec sp_rename 'dbo.i2_variantrecol.c_tinyint','c_tinyintnew';
+insert into dbo.i2_variantrecol values (3,newid(),'chang56789','AA103','GHjjjjjjjjj','上海英方股份有限公司测试用例4',10,9999,101,67891,2020.88888888,500.6789,300.45,500.6789,100.23,300.45,1,
+convert(date,SYSDATETIME()),
+convert(time,SYSDATETIME()),
+convert(datetime,'1999-12-12 14:31:56.333',20),
+convert(datetime2,'2048-06-01 20:51:24.99999',21),
+convert(smalldatetime,'2000-12-05 12:00:00',20),
+CONVERT (datetimeoffset,SYSDATETIMEOFFSET()),
+0x3f,0x111111111,'/1/2/3/');
+insert into dbo.i2_variantrecol(no,c_varcharnew,c_tinyintnew) values ( 4,'AA104',111);
+update dbo.i2_variantrecol set c_intnew=20,c_char20new='test123' where no=2;
+delete from i2_variantrecol where no=1;
+go
+
+tgt_sql: (1)
+select no,convert(uniqueidentifier,c_uniquenew),convert(char(20),c_char20new),convert(varchar(50),c_varcharnew),convert(nchar(50),c_nchar50new),convert(nvarchar(50),c_nvarcharnew),convert(int,c_intnew),convert(smallint,c_smallintnew),convert(tinyint,c_tinyintnew),convert(bigint,c_bigintnew),convert(decimal(10,4),c_decimal),convert(numeric(10,4),c_numeric),convert(float,c_float),convert(real,c_real),convert(money,c_money),convert(smallmoney,c_smallmoney),convert(bit,c_bit),convert(date,c_date),convert(time,c_time),convert(datetime,c_datetime),convert(datetime2,c_datetime2),convert(smalldatetime,c_smalldatetime),convert(datetimeoffset,c_datetimeoffset),convert(binary,c_binary),convert(varbinary,c_varbinary),convert(varchar(50),c_hierarchyid) from dbo.i2_variantrecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_variantrecol');
+go
+
+case 009 "数据：文本类型重命名列 " 0
+before:
+drop table dbo.i2_textrecol;
+go
+src_sql:
+create table dbo.i2_textrecol (
+    no           int primary key,
+	c_text		 text,
+	c_ntext		 ntext,
+	c_image      image
+);
+insert into dbo.i2_textrecol values (1,'012345679809909089','这是一个测试用例INFO',0x18F6D0D51D96A9664FC1491174A9DAFD67C8B0D2571EB1ABF7EDEC2CCB508EEAA4D7163B4);
+insert into dbo.i2_textrecol values (2,'lkjdkgljasjhjjklgs','这是一个测试用例INFO',0x28F6D0D51D96A9664FC1491174A9DAFD67C8B0D2571EB1ABF7EDEC2CCB508EEAA4D7163B4);
+exec sp_rename 'dbo.i2_textrecol.c_text','c_textnew','COLUMN';
+exec sp_rename 'dbo.i2_textrecol.c_ntext','c_ntextnew','COLUMN';
+exec sp_rename 'dbo.i2_textrecol.c_image','c_imagenew','COLUMN';
+insert into dbo.i2_textrecol values (3,'kljlkjlkjkloiuiyio','这是一个测试用例INFO',0x38F6D0D51D96A9664FC1491174A9DAFD67C8B0D2571EB1ABF7EDEC2CCB508EEAA4D7163B4);
+insert into dbo.i2_textrecol(no,c_textnew) values(4,'zzzzzzzzzzzz');
+update dbo.i2_textrecol set c_textnew='upupupupupupupup' where no=2;
+delete from dbo.i2_textrecol where no=1;
+go
+
+tgt_sql:
+select * from dbo.i2_textrecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_textrecol');
+go
+
+case 010 "数据：CLR数据类型重命名列 " 0
+before:
+drop table dbo.i2_clrrecol;
+go
+src_sql:
+CREATE TABLE dbo.i2_clrrecol
+(
+    no                  int primary key,
+	c_hierarchyid       hierarchyid,
+	c_h1                hierarchyid,
+	v1 				    hierarchyid
+);
+insert into dbo.i2_clrrecol values (1,'/1/2/1/','/1/2/2/','/1/2/3/');
+insert into dbo.i2_clrrecol values (2,'/1/2/4/','/1/2/5/','/1/2/6/');
+exec sp_rename 'dbo.i2_clrrecol.c_hierarchyid','c_hierarchyidnew';
+exec sp_rename 'dbo.i2_clrrecol.c_h1','c_h1new';
+insert into dbo.i2_clrrecol values (3,'/1/2/5/','/1/1/1/','/1/1/2/');
+insert into dbo.i2_clrrecol(no,c_hierarchyidnew) values(4,'/1/2/7/');
+update dbo.i2_clrrecol set c_h1new='/1/2/8/' where no=2;
+delete from i2_clrrecol where no=1;
+go
+
+tgt_sql:
+select * from dbo.i2_clrrecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_clrrecol');
+go
+
+case 011 "数据：sysname类型重命名列 " 0
+before:
+drop table dbo.i2_sysnamerecol;
+go
+src_sql:
+create table dbo.i2_sysnamerecol (no int primary key,c_s1 sysname,c_n1 nvarchar(128) not null);
+insert into dbo.i2_sysnamerecol values (1,N'test sysname定义ABC','数据的同时级联插入');
+insert into dbo.i2_sysnamerecol values (2,N'test sysname定义ABCD','数据的同时级联插入');
+exec sp_rename 'dbo.i2_sysnamerecol.c_s1','c_snew1';
+insert into dbo.i2_sysnamerecol values (3,N'test sysname定义A','数据的同时级联插入');
+insert into dbo.i2_sysnamerecol(no,c_snew1,c_n1) values (4,N'test sysname定义AB','数据的同时级联插入');
+update dbo.i2_sysnamerecol set c_snew1=N'test sysname定义GG' where no=2;
+delete from i2_sysnamerecol where no=1;
+go
+
+tgt_sql:
+select * from dbo.i2_sysnamerecol order by no;
+select name,xtype,length,isnullable from sys.syscolumns where id = OBJECT_ID('i2_sysnamerecol');
+go
